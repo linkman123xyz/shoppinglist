@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shopping list</title>
+<meta name="theme-color" content="#EDF0EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shopping">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0EC; --card:#FFFFFF; --ink:#1B2420; --muted:#6B7570; --line:#E1E6E2;
+  --aldi:#2F5DA8; --woolies:#2E7D4F; --lebos:#B04A36; --asian:#A87A1E; --done:#A3ABA7;
+  --shadow:0 10px 28px rgba(20,30,25,.2);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131816; --card:#1C2320; --ink:#E6EBE8; --muted:#94A09A; --line:#2B3430;
+    --aldi:#86A8E8; --woolies:#6FC596; --lebos:#E68E78; --asian:#E2BA62; --done:#5C6762;
+    --shadow:0 10px 28px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131816; --card:#1C2320; --ink:#E6EBE8; --muted:#94A09A; --line:#2B3430;
+  --aldi:#86A8E8; --woolies:#6FC596; --lebos:#E68E78; --asian:#E2BA62; --done:#5C6762;
+  --shadow:0 10px 28px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:22px 14px 64px}
+header h1{font-family:'Bricolage Grotesque','Atkinson Hyperlegible',system-ui,sans-serif;font-weight:800;font-size:2.1rem;line-height:1;margin:0 0 6px;letter-spacing:-.02em}
+.status{color:var(--muted);font-size:.88rem;margin:0}
+.status strong{color:var(--ink);font-weight:700}
+
+section.store{background:var(--card);border-radius:14px;margin:14px 0;border-left:7px solid var(--c);padding:12px 10px 6px 12px}
+.head{display:flex;align-items:baseline;gap:10px;padding-right:4px}
+.store h2{font-family:'Bricolage Grotesque','Atkinson Hyperlegible',system-ui,sans-serif;font-weight:800;font-size:1.55rem;line-height:1.1;color:var(--c);margin:0;letter-spacing:-.01em}
+.count{color:var(--muted);font-size:.85rem;flex:1}
+.clear{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:4px}
+.clear[hidden]{display:none}
+
+.add{display:flex;gap:6px;margin:10px 4px 6px 0}
+.add input{flex:1;min-width:0;font:inherit;font-size:16px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink)}
+.add input::placeholder{color:var(--muted)}
+.add input:focus{outline:2px solid var(--c);outline-offset:-1px;border-color:transparent}
+.add button{background:var(--c);color:var(--card);border:0;border-radius:9px;width:44px;font-size:1.4rem;line-height:1;cursor:pointer}
+.add button:focus-visible,.del:focus-visible,.grip:focus-visible,.clear:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+ul.items{list-style:none;margin:0;padding:0;min-height:42px}
+ul.items:empty::before{content:'Nothing on the list';display:block;color:var(--muted);font-size:.9rem;padding:11px 4px}
+li.item{display:flex;align-items:center;gap:2px;border-top:1px solid var(--line);background:var(--card)}
+li.item:first-child{border-top:0}
+li.item.done + li.item.done{border-top-style:dashed}
+li.item:not(.done) + li.item.done{border-top:2px solid var(--line)}
+
+.grip{touch-action:none;cursor:grab;background:none;border:0;color:var(--muted);width:34px;height:44px;display:grid;place-items:center;padding:0;flex:none}
+.grip svg{width:12px;height:18px}
+.check{flex:1;display:flex;align-items:center;gap:11px;min-height:44px;cursor:pointer;min-width:0;position:relative}
+.check input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.box{width:22px;height:22px;border:2px solid var(--c);border-radius:6px;flex:none;display:grid;place-items:center;transition:background-color .15s,border-color .15s}
+.check input:checked + .box{background:var(--c)}
+.check input:checked + .box::after{content:'';width:6px;height:11px;border:solid var(--card);border-width:0 2.5px 2.5px 0;transform:translate(0,-1px) rotate(45deg)}
+.check input:focus-visible + .box{outline:2px solid var(--ink);outline-offset:2px}
+.txt{overflow-wrap:anywhere}
+li.done .txt{text-decoration:line-through;color:var(--done)}
+li.done .box{border-color:var(--done)}
+li.done .check input:checked + .box{background:var(--done)}
+.del{background:none;border:0;color:var(--muted);font-size:1.35rem;width:38px;height:44px;cursor:pointer;flex:none;opacity:.55}
+.del:hover{opacity:1}
+
+li.placeholder{opacity:.22}
+.ghost{position:fixed;z-index:20;pointer-events:none;box-shadow:var(--shadow);border-radius:10px;border-top:0 !important;transform:rotate(-1.2deg) scale(1.02);display:flex;align-items:center}
+body.is-dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
+body.is-dragging section.store{transition:box-shadow .15s}
+body.is-dragging section.store.target{box-shadow:0 0 0 2px var(--c)}
+
+.note{color:var(--muted);font-size:.8rem;text-align:center;margin-top:18px}
+@media (prefers-reduced-motion: reduce){ .box{transition:none} .ghost{transform:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Shopping list</h1>
+    <p class="status" id="status">Loading…</p>
+  </header>
+  <main id="stores"></main>
+  <p class="note">Drag the dots to move an item between shops.</p>
+</div>
+
+<!-- ============================================================
+     STEP 2 OF THE SETUP: paste your Firebase settings below.
+     Replace everything between the braces with the firebaseConfig
+     block Firebase gives you. Keep LIST_ID as it is.
+     ============================================================ -->
+<script>
+  window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyD-6F1o1rHZX7ZcqVoK\_fIe60EDxi8HTiM",\
+  authDomain: "shoppinglist-da0f8.firebaseapp.com",\
+  databaseURL: "https\://shoppinglist-da0f8-default-rtdb.firebaseio.com",\
+  projectId: "shoppinglist-da0f8",\
+  storageBucket: "shoppinglist-da0f8.firebasestorage.app",\
+  messagingSenderId: "1040940565602",\
+  appId: "1:1040940565602:web:46db09decc313c52d13d3b",\
+  measurementId: "G-2LT367DCR1"
+  };
+  window.LIST_ID = "fam-5667511b0bf4b608";
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+(function(){
+  const CATS = [
+    {id:'aldi',    name:'Aldi',       colour:'var(--aldi)'},
+    {id:'woolies', name:'Woolworths', colour:'var(--woolies)'},
+    {id:'lebos',   name:'Lebos',      colour:'var(--lebos)'},
+    {id:'asian',   name:'Asian',      colour:'var(--asian)'}
+  ];
+  const GRIP = '<svg viewBox="0 0 12 18" aria-hidden="true"><g fill="currentColor"><circle cx="3" cy="3" r="1.6"/><circle cx="9" cy="3" r="1.6"/><circle cx="3" cy="9" r="1.6"/><circle cx="9" cy="9" r="1.6"/><circle cx="3" cy="15" r="1.6"/><circle cx="9" cy="15" r="1.6"/></g></svg>';
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let items = new Map();     // id -> {id,text,cat,pos,done,doneAt}
+  let store = null;          // {add, update, remove}
+  let mode = 'loading';
+  let readOnly = false;
+  let dragging = null;
+  let pendingRender = false;
+  let notConfigured = false;
+
+  const $stores = document.getElementById('stores');
+  const $status = document.getElementById('status');
+
+  // ---------- static layout ----------
+  CATS.forEach(c => {
+    const s = document.createElement('section');
+    s.className = 'store';
+    s.dataset.cat = c.id;
+    s.style.setProperty('--c', c.colour);
+    s.innerHTML =
+      '<div class="head"><h2></h2><span class="count"></span><button class="clear" type="button" hidden></button></div>' +
+      '<div class="add"><input type="text" enterkeyhint="done" autocomplete="off"><button type="button" aria-label="Add item">+</button></div>' +
+      '<ul class="items"></ul>';
+    s.querySelector('h2').textContent = c.name;
+    const input = s.querySelector('.add input');
+    input.placeholder = 'Add to ' + c.name;
+    input.setAttribute('aria-label', 'Add item to ' + c.name);
+    s.querySelector('ul').dataset.cat = c.id;
+    $stores.appendChild(s);
+  });
+
+  // ---------- helpers ----------
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const inCat = cat => [...items.values()].filter(i => i.cat === cat);
+  const maxPos = cat => inCat(cat).reduce((m, i) => Math.max(m, i.pos || 0), 0);
+
+  function sorted(cat){
+    const all = inCat(cat);
+    const open = all.filter(i => !i.done).sort((a,b) => (a.pos||0) - (b.pos||0));
+    const done = all.filter(i => i.done).sort((a,b) => (a.doneAt||0) - (b.doneAt||0));
+    return open.concat(done);
+  }
+
+  function rowEl(it){
+    const li = document.createElement('li');
+    li.className = 'item' + (it.done ? ' done' : '');
+    li.dataset.id = it.id;
+    li.innerHTML =
+      '<button class="grip" type="button" aria-label="Drag to move">' + GRIP + '</button>' +
+      '<label class="check"><input type="checkbox"' + (it.done ? ' checked' : '') + '><span class="box"></span><span class="txt"></span></label>' +
+      '<button class="del" type="button" aria-label="Delete item">×</button>';
+    li.querySelector('.txt').textContent = it.text;
+    return li;
+  }
+
+  function snapRects(){
+    const m = new Map();
+    document.querySelectorAll('li.item').forEach(li => m.set(li.dataset.id, li.getBoundingClientRect().top));
+    return m;
+  }
+  function flip(before){
+    if (reduceMotion || !Element.prototype.animate) return;
+    document.querySelectorAll('li.item').forEach(li => {
+      const t = before.get(li.dataset.id);
+      if (t == null) return;
+      const dy = t - li.getBoundingClientRect().top;
+      if (Math.abs(dy) < 1) return;
+      li.animate([{transform:'translateY(' + dy + 'px)'},{transform:'none'}], {duration:280, easing:'cubic-bezier(.2,.7,.2,1)'});
+    });
+  }
+
+  // ---------- render ----------
+  function render(){
+    if (dragging) { pendingRender = true; return; }
+    pendingRender = false;
+    const before = snapRects();
+    const focusedId = document.activeElement && document.activeElement.closest && document.activeElement.closest('li.item') ? document.activeElement.closest('li.item').dataset.id : null;
+    const focusedCls = focusedId ? [...document.activeElement.classList].join('.') || (document.activeElement.type === 'checkbox' ? 'cb' : '') : null;
+
+    let totalOpen = 0;
+    CATS.forEach(c => {
+      const sec = $stores.querySelector('section[data-cat="' + c.id + '"]');
+      const ul = sec.querySelector('ul');
+      const list = sorted(c.id);
+      const frag = document.createDocumentFragment();
+      list.forEach(it => frag.appendChild(rowEl(it)));
+      ul.replaceChildren(frag);
+      const open = list.filter(i => !i.done).length;
+      const done = list.length - open;
+      totalOpen += open;
+      sec.querySelector('.count').textContent = list.length ? (open ? open + ' to get' : 'All done') : '';
+      const clr = sec.querySelector('.clear');
+      clr.hidden = !done || readOnly;
+      clr.textContent = 'Clear ticked (' + done + ')';
+    });
+
+    if (focusedId) {
+      const li = document.querySelector('li.item[data-id="' + focusedId + '"]');
+      if (li) {
+        const el = focusedCls === 'cb' ? li.querySelector('input') : li.querySelector('.' + focusedCls.split('.')[0]);
+        if (el) el.focus({preventScroll:true});
+      }
+    }
+    flip(before);
+    setStatus(totalOpen);
+  }
+
+  function setStatus(totalOpen){
+    const n = totalOpen == null ? [...items.values()].filter(i => !i.done).length : totalOpen;
+    const count = '<strong>' + n + '</strong> ' + (n === 1 ? 'item' : 'items') + ' to get';
+    let where = '';
+    if (mode === 'shared') where = readOnly ? ' - view only' : ' - shared, updates live';
+    else if (mode === 'local') where = notConfigured ? ' - not connected yet, add your Firebase settings to index.html' : ' - saved on this device only';
+    else if (mode === 'error') where = ' - offline, changes will sync when you reconnect';
+    $status.innerHTML = count + where;
+  }
+
+  // ---------- data actions ----------
+  function fail(err){
+    if (err && err.code === 'invalid_argument' && mode === 'shared') { readOnly = true; document.body.classList.add('read-only'); }
+    render();
+  }
+  function apply(id, patch){
+    const cur = items.get(id); if (!cur || readOnly) return;
+    items.set(id, Object.assign({}, cur, patch));
+    render();
+    Promise.resolve(store.update(id, patch)).catch(fail);
+  }
+  function addItems(cat, raw){
+    if (readOnly) return;
+    const texts = raw.split(',').map(s => s.trim()).filter(Boolean);
+    let pos = maxPos(cat);
+    texts.forEach(text => {
+      pos += 1;
+      const id = newId();
+      const data = {text, cat, pos, done:false, doneAt:null, created:Date.now()};
+      items.set(id, Object.assign({id}, data));
+      Promise.resolve(store.add(id, data)).catch(fail);
+    });
+    render();
+  }
+  function removeItem(id){
+    if (readOnly) return;
+    items.delete(id);
+    render();
+    Promise.resolve(store.remove(id)).catch(fail);
+  }
+  async function clearTicked(cat){
+    const ids = inCat(cat).filter(i => i.done).map(i => i.id);
+    ids.forEach(id => items.delete(id));
+    render();
+    for (const id of ids) { try { await store.remove(id); } catch(e){ fail(e); break; } }
+  }
+
+  // ---------- events ----------
+  $stores.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.matches('.add input')) {
+      const sec = e.target.closest('section');
+      if (e.target.value.trim()) { addItems(sec.dataset.cat, e.target.value); e.target.value = ''; }
+    }
+  });
+  $stores.addEventListener('click', e => {
+    const addBtn = e.target.closest('.add button');
+    if (addBtn) {
+      const sec = addBtn.closest('section'); const input = sec.querySelector('.add input');
+      if (input.value.trim()) { addItems(sec.dataset.cat, input.value); input.value = ''; }
+      input.focus();
+      return;
+    }
+    const del = e.target.closest('.del');
+    if (del) { removeItem(del.closest('li').dataset.id); return; }
+    const clr = e.target.closest('.clear');
+    if (clr) { clearTicked(clr.closest('section').dataset.cat); }
+  });
+  $stores.addEventListener('change', e => {
+    if (!e.target.matches('.check input')) return;
+    const li = e.target.closest('li'); const id = li.dataset.id; const checked = e.target.checked;
+    if (readOnly) { e.target.checked = !checked; return; }
+    li.classList.toggle('done', checked);
+    // brief pause so the tick is seen before the item moves
+    setTimeout(() => apply(id, {done:checked, doneAt: checked ? Date.now() : null}), reduceMotion ? 0 : 220);
+  });
+
+  // ---------- drag and drop (pointer based, works on touch) ----------
+  $stores.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('.grip');
+    if (!grip || readOnly || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    startDrag(e, grip.closest('li'));
+  });
+
+  function startDrag(e, li){
+    const r = li.getBoundingClientRect();
+    const ghost = li.cloneNode(true);
+    ghost.classList.add('ghost');
+    ghost.style.setProperty('--c', getComputedStyle(li).getPropertyValue('--c'));
+    ghost.style.width = r.width + 'px';
+    ghost.style.left = r.left + 'px';
+    ghost.style.top = r.top + 'px';
+    document.body.appendChild(ghost);
+    li.classList.add('placeholder');
+    dragging = {id: li.dataset.id, li, ghost, offY: e.clientY - r.top, x: e.clientX, y: e.clientY, pointerId: e.pointerId};
+    document.body.classList.add('is-dragging');
+    markTarget(li.closest('section'));
+    window.addEventListener('pointermove', onMove, {passive:false});
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+    requestAnimationFrame(scrollLoop);
+  }
+
+  function onMove(e){
+    if (!dragging || e.pointerId !== dragging.pointerId) return;
+    e.preventDefault();
+    dragging.x = e.clientX; dragging.y = e.clientY;
+    dragging.ghost.style.top = (e.clientY - dragging.offY) + 'px';
+    place(e.clientX, e.clientY);
+  }
+
+  function markTarget(sec){
+    document.querySelectorAll('section.store.target').forEach(s => { if (s !== sec) s.classList.remove('target'); });
+    if (sec) sec.classList.add('target');
+  }
+
+  function place(x, y){
+    const el = document.elementFromPoint(x, y);
+    if (!el) return;
+    const sec = el.closest('section.store');
+    if (!sec) return;
+    markTarget(sec);
+    const ul = sec.querySelector('ul.items');
+    const li = dragging.li;
+    const it = items.get(dragging.id);
+    const isDone = !!(it && it.done);
+    const rows = [...ul.querySelectorAll('li.item:not(.placeholder)')].filter(r => r.classList.contains('done') === isDone);
+    let before = null;
+    for (const r of rows) { const b = r.getBoundingClientRect(); if (y < b.top + b.height / 2) { before = r; break; } }
+    if (!before && !isDone) before = ul.querySelector('li.item.done:not(.placeholder)');
+    if (before) { if (li.parentNode !== ul || li.nextElementSibling !== before) ul.insertBefore(li, before); }
+    else if (li.parentNode !== ul || ul.lastElementChild !== li) ul.appendChild(li);
+  }
+
+  function scrollLoop(){
+    if (!dragging) return;
+    const h = window.innerHeight, edge = 70, y = dragging.y;
+    let d = 0;
+    if (y < edge) d = -(edge - y) / 4;
+    else if (y > h - edge) d = (y - (h - edge)) / 4;
+    if (d) { window.scrollBy(0, d); place(dragging.x, y); }
+    requestAnimationFrame(scrollLoop);
+  }
+
+  function endDrag(e){
+    if (!dragging || (e && e.pointerId !== dragging.pointerId)) return;
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    const {id, li, ghost} = dragging;
+    ghost.remove();
+    li.classList.remove('placeholder');
+    document.body.classList.remove('is-dragging');
+    markTarget(null);
+
+    const it = items.get(id);
+    const ul = li.parentNode;
+    dragging = null;
+    if (!it || !ul) { render(); return; }
+    const cat = ul.dataset.cat;
+    const openPos = el => (el && el.classList.contains('item') && !el.classList.contains('done') && items.get(el.dataset.id)) ? items.get(el.dataset.id).pos : null;
+
+    let pos = it.pos;
+    if (!it.done) {
+      const p = openPos(li.previousElementSibling), n = openPos(li.nextElementSibling);
+      pos = (p == null && n == null) ? 1 : (p == null ? n - 1 : (n == null ? p + 1 : (p + n) / 2));
+    } else if (cat !== it.cat) {
+      pos = maxPos(cat) + 1;
+    }
+    const patch = {};
+    if (cat !== it.cat) patch.cat = cat;
+    if (pos !== it.pos) patch.pos = pos;
+    if (Object.keys(patch).length) apply(id, patch); else render();
+  }
+
+  // ---------- storage ----------
+  function useLocal(){
+    mode = 'local';
+    const KEY = 'shopping-list-v1';
+    try { const raw = localStorage.getItem(KEY); if (raw) { const obj = JSON.parse(raw); items = new Map(Object.entries(obj).map(([id, v]) => [id, Object.assign({id}, v)])); } } catch(e){}
+    const save = () => { try { const o = {}; items.forEach((v, k) => { const c = Object.assign({}, v); delete c.id; o[k] = c; }); localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){} };
+    store = { add: () => save(), update: () => save(), remove: () => save() };
+    render();
+  }
+
+  async function init(){
+    setStatus(0);
+    const cfg = window.FIREBASE_CONFIG || {};
+    if (!window.firebase || !cfg.databaseURL || cfg.databaseURL.indexOf('PASTE') !== -1) {
+      notConfigured = true;
+      useLocal();
+      return;
+    }
+    try {
+      firebase.initializeApp(cfg);
+    } catch(e) { useLocal(); return; }
+
+    mode = 'shared';
+    const col = firebase.database().ref('lists/' + window.LIST_ID + '/items');
+    store = {
+      add: (id, data) => col.child(id).set(data),
+      update: (id, patch) => col.child(id).update(patch),
+      remove: id => col.child(id).remove()
+    };
+    col.on('value', snap => {
+      const next = new Map();
+      const val = snap.val() || {};
+      Object.keys(val).forEach(id => next.set(id, Object.assign({id}, val[id])));
+      items = next;
+      if (dragging) pendingRender = true; else render();
+    }, () => { mode = 'error'; setStatus(); });
+
+    firebase.database().ref('.info/connected').on('value', s => {
+      if (mode === 'shared' || mode === 'error') { mode = s.val() ? 'shared' : 'error'; setStatus(); }
+    });
+  }
+
+  // flush a deferred render once a drag finishes
+  window.addEventListener('pointerup', () => { if (!dragging && pendingRender) render(); });
+
+  render();
+  init();
+})();
+</script>
+</body>
+</html>
