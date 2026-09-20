@@ -450,6 +450,31 @@ body.is-dragging section.store.target{box-shadow:0 0 0 2px var(--c)}
   // flush a deferred render once a drag finishes
   window.addEventListener('pointerup', () => { if (!dragging && pendingRender) render(); });
 
+  // ---------- A-Z sort button ----------
+  const azStyle = document.createElement('style');
+  azStyle.textContent = '.sortaz{background:none;border:1px solid var(--line);border-radius:7px;color:var(--c);font:inherit;font-size:.8rem;font-weight:700;padding:3px 8px;cursor:pointer}';
+  document.head.appendChild(azStyle);
+  document.querySelectorAll('section.store .head').forEach(h => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sortaz';
+    b.textContent = 'A-Z';
+    b.setAttribute('aria-label', 'Sort A to Z');
+    h.insertBefore(b, h.querySelector('.clear'));
+    b.addEventListener('click', () => {
+      if (readOnly) return;
+      const cat = h.closest('section').dataset.cat;
+      const open = inCat(cat).filter(i => !i.done)
+        .sort((x, y) => x.text.localeCompare(y.text, 'en', {sensitivity: 'base'}));
+      open.forEach((it, n) => {
+        if (it.pos !== n + 1) {
+          items.set(it.id, Object.assign({}, it, {pos: n + 1}));
+          Promise.resolve(store.update(it.id, {pos: n + 1})).catch(fail);
+        }
+      });
+      render();
+    });
+  });  
   render();
   init();
 })();
